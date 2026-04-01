@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Submit Complaint | Express Your Heat</title>
+    
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Syncopate:wght@700&family=Plus+Jakarta+Sans:wght@300;400;800&display=swap" rel="stylesheet">
+
+    <style>
+        :root {
+            --fire-orange: #ff4d00;
+            --angry-red: #d90429;
+            --smoke: rgba(255, 255, 255, 0.05);
+        }
+
+        body {
+            margin: 0;
+            height: 100vh;
+            background: radial-gradient(circle at center, #2b0d02 0%, #000000 100%);
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            color: white;
+            overflow: hidden;
+            perspective: 1500px;
+        }
+
+        /* 3D Floating Angry Emojis */
+        .emoji-asset {
+            position: absolute;
+            font-size: 5rem;
+            filter: drop-shadow(0 0 20px rgba(217, 4, 41, 0.5));
+            z-index: 50;
+            pointer-events: none;
+            animation: shake 0.5s infinite alternate;
+        }
+
+        @keyframes shake {
+            0% { transform: translate(0, 0) rotate(0deg) translateZ(100px); }
+            100% { transform: translate(5px, 5px) rotate(5deg) translateZ(120px); }
+        }
+
+        .stage {
+            height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .complaint-card {
+            background: linear-gradient(135deg, rgba(43, 13, 2, 0.9), rgba(0, 0, 0, 0.95));
+            border: 2px solid var(--angry-red);
+            border-radius: 40px;
+            width: 700px;
+            padding: 50px;
+            position: relative;
+            transform-style: preserve-3d;
+            box-shadow: 0 50px 100px rgba(0,0,0,0.9), inset 0 0 30px rgba(217, 4, 41, 0.2);
+            transition: transform 0.1s ease-out;
+        }
+
+        .inner-content { transform: translateZ(60px); }
+
+        h2 {
+            font-family: 'Syncopate', sans-serif;
+            font-weight: 700;
+            color: var(--fire-orange);
+            letter-spacing: 5px;
+            text-shadow: 0 0 15px var(--angry-red);
+            margin-bottom: 40px;
+            text-align: center;
+        }
+
+        .form-input {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(217, 4, 41, 0.4);
+            border-radius: 15px;
+            color: white;
+            padding: 15px;
+            width: 100%;
+            margin-bottom: 20px;
+            outline: none;
+            transition: 0.3s;
+        }
+
+        .form-input:focus {
+            background: rgba(217, 4, 41, 0.1);
+            border-color: var(--fire-orange);
+            box-shadow: 0 0 15px var(--fire-orange);
+        }
+
+        textarea.form-input {
+            height: 150px;
+            resize: none;
+        }
+
+        .submit-btn {
+            background: var(--angry-red);
+            border: none;
+            padding: 15px;
+            width: 100%;
+            border-radius: 15px;
+            color: white;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 3px;
+            transition: all 0.3s;
+            cursor: pointer;
+        }
+
+        .submit-btn:hover {
+            background: var(--fire-orange);
+            transform: scale(1.02) translateZ(20px);
+            box-shadow: 0 10px 30px var(--fire-orange);
+        }
+
+        /* Heat Waves */
+        .heat-wave {
+            position: absolute;
+            bottom: 0;
+            width: 100%;
+            height: 100px;
+            background: linear-gradient(to top, rgba(255, 77, 0, 0.2), transparent);
+            pointer-events: none;
+        }
+
+    </style>
+</head>
+<body>
+
+    <div class="emoji-asset" id="emoji-1" style="top: 10%; left: 5%;">🤬</div>
+    <div class="emoji-asset" id="emoji-2" style="bottom: 10%; right: 10%; animation-delay: 0.2s;">😡</div>
+    <div class="emoji-asset" id="emoji-3" style="top: 40%; right: 5%; font-size: 3rem; animation-delay: 0.4s;">😤</div>
+
+    <div class="stage">
+        <div class="complaint-card" id="card">
+            <div class="inner-content">
+                <h2>LOG A COMPLAINT</h2>
+                
+                <input id="user" class="form-input" placeholder="Enter Your Name">
+                
+                <textarea id="complaint" class="form-input" placeholder="Tell us what went wrong..."></textarea>
+
+                <button class="submit-btn" onclick="submitComplaint()">
+                    SEND COMPLAINT 🔥
+                </button>
+                
+                <p class="text-center mt-4" style="color: rgba(255,255,255,0.4); font-size: 0.8rem;">
+                    Your feedback will be sent directly to the Admin Vault.
+                </p>
+            </div>
+            <div class="heat-wave"></div>
+        </div>
+    </div>
+
+    <script>
+        const card = document.getElementById("card");
+        const emojis = [document.getElementById("emoji-1"), document.getElementById("emoji-2"), document.getElementById("emoji-3")];
+
+        document.addEventListener("mousemove", (e) => {
+            let x = (window.innerWidth / 2 - e.pageX) / 30;
+            let y = (window.innerHeight / 2 - e.pageY) / 30;
+
+            card.style.transform = `rotateY(${x}deg) rotateX(${-y}deg)`;
+
+            // Different parallax for each emoji
+            emojis.forEach((emoji, index) => {
+                let factor = (index + 1) * 2;
+                emoji.style.transform = `translate3d(${-x * factor}px, ${-y * factor}px, 120px) rotate(${x}deg)`;
+            });
+        });
+
+        /* --- API LOGIC (Functionality preserved) --- */
+        function submitComplaint(){
+            const user = document.getElementById("user").value;
+            const complaint = document.getElementById("complaint").value;
+
+            if(!user || !complaint) {
+                alert("Don't hold back! Fill in the details.");
+                return;
+            }
+
+            fetch("http://localhost:5000/complaint",{
+                method:"POST",
+                headers:{
+                    "Content-Type":"application/json"
+                },
+                body:JSON.stringify({
+                    user: user,
+                    complaint: complaint
+                })
+            })
+            .then(res=>res.json())
+            .then(data=>{
+                alert(data.message);
+                // Redirecting back to dashboard after alert
+                window.location = "student_dashboard.html";
+            })
+            .catch(err => {
+                console.error(err);
+                alert("Connection lost. Even the server is angry.");
+            });
+        }
+    </script>
+</body>
+</html>

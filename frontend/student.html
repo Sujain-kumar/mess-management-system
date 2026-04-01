@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>Student Dashboard</title>
+
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+
+<style>
+
+body{
+margin:0;
+height:100vh;
+background:linear-gradient(135deg,#fdfcfb,#ffe0e9);
+font-family:Arial;
+}
+
+.container-box{
+height:100vh;
+display:flex;
+align-items:center;
+justify-content:center;
+}
+
+.card-ui{
+background:white;
+padding:50px;
+border-radius:30px;
+width:850px;
+text-align:center;
+box-shadow:0 20px 50px rgba(0,0,0,0.2);
+}
+
+h1{
+color:#ff6f91;
+letter-spacing:6px;
+margin-bottom:40px;
+}
+
+.grid{
+display:grid;
+grid-template-columns:repeat(3,1fr);
+gap:20px;
+}
+
+.box{
+background:#fff0f5;
+padding:25px;
+border-radius:20px;
+cursor:pointer;
+transition:0.3s;
+font-weight:bold;
+}
+
+.box:hover{
+transform:scale(1.05);
+background:#ff6f91;
+color:white;
+}
+
+.panel{
+margin-top:30px;
+padding:20px;
+border:2px dashed #ffb3c6;
+border-radius:20px;
+display:none;
+}
+
+#output{
+margin-top:20px;
+background:#fff;
+padding:15px;
+border-radius:10px;
+height:160px;
+overflow:auto;
+font-family:monospace;
+}
+
+</style>
+
+</head>
+
+<body>
+
+<div class="container-box">
+
+<div class="card-ui">
+
+<h1>🍰 PORTAL</h1>
+
+<div class="grid">
+
+<div class="box" onclick="viewMenu()">🍽 MENU</div>
+<div class="box" onclick="openBilling()">💰 BILLING</div>
+<div class="box" onclick="submitComplaint()">🧁 SUPPORT</div>
+
+</div>
+
+<div class="panel" id="billingPanel">
+
+<h4>Select Meal</h4>
+
+<select id="meal" class="form-select w-50 mx-auto">
+<option value="breakfast">Breakfast</option>
+<option value="lunch">Lunch</option>
+<option value="dinner">Dinner</option>
+</select>
+
+<br>
+
+<button class="btn btn-warning" onclick="markAttendance()">Confirm</button>
+
+</div>
+
+<div id="output">Welcome 👋</div>
+
+<br>
+
+<button class="btn btn-dark" onclick="logout()">Logout</button>
+
+</div>
+
+</div>
+
+<script>
+
+function getUser(){
+
+let user = localStorage.getItem("user")
+
+if(!user){
+alert("Login again")
+window.location="login.html"
+return
+}
+
+return user.toLowerCase().trim()
+}
+
+
+function viewMenu(){
+
+document.getElementById("billingPanel").style.display = "none"
+
+fetch("http://localhost:5000/menu")
+.then(res=>res.json())
+.then(data=>{
+
+if(!data){
+document.getElementById("output").innerHTML = "No menu today"
+return
+}
+
+document.getElementById("output").innerHTML = `
+Breakfast: ${data.breakfast}<br>
+Lunch: ${data.lunch}<br>
+Dinner: ${data.dinner}
+`
+
+})
+
+}
+
+
+function openBilling(){
+
+document.getElementById("billingPanel").style.display = "block"
+
+document.getElementById("output").innerHTML = "Select meal and confirm"
+
+}
+
+
+function markAttendance(){
+
+let user = getUser()
+let meal = document.getElementById("meal").value
+
+// ✅ FIXED DATE (LOCAL TIME — NO BUG)
+let today = new Date()
+let date = today.getFullYear() + "-" +
+           String(today.getMonth()+1).padStart(2,'0') + "-" +
+           String(today.getDate()).padStart(2,'0')
+
+fetch("http://localhost:5000/attendance",{
+method:"POST",
+headers:{
+"Content-Type":"application/json"
+},
+body:JSON.stringify({
+user:user,
+date:date,
+meal:meal
+})
+})
+.then(res=>res.json())
+.then(data=>{
+
+document.getElementById("output").innerHTML = data.message
+
+fetch("http://localhost:5000/bill/"+user)
+.then(res=>res.json())
+.then(bill=>{
+
+document.getElementById("output").innerHTML += `
+<br><br>
+User: ${bill.user}<br>
+Meals: ${bill.total_meals}<br>
+Amount: ₹${bill.amount}
+`
+
+})
+
+})
+
+}
+
+
+function submitComplaint(){
+
+document.getElementById("billingPanel").style.display = "none"
+
+let user = getUser()
+let complaint = prompt("Enter complaint")
+
+if(!complaint) return
+
+fetch("http://localhost:5000/complaint",{
+method:"POST",
+headers:{
+"Content-Type":"application/json"
+},
+body:JSON.stringify({
+user:user,
+complaint:complaint
+})
+})
+.then(res=>res.json())
+.then(data=>alert(data.message))
+
+}
+
+
+function logout(){
+localStorage.removeItem("user")
+window.location="login.html"
+}
+
+</script>
+
+</body>
+</html>

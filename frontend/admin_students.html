@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin | Student Archives</title>
+    
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Crimson+Pro:wght@600;800&family=Syncopate:wght@700&display=swap" rel="stylesheet">
+
+    <style>
+        :root {
+            --book-gold: #c5a059;
+            --parchment: #f4e4bc;
+            --library-oak: #2c1b0e;
+        }
+
+        body {
+            margin: 0;
+            height: 100vh;
+            background: radial-gradient(circle at center, #3d2b1f 0%, #0a0500 100%);
+            font-family: 'Crimson Pro', serif;
+            color: var(--parchment);
+            overflow: hidden;
+            perspective: 2000px;
+        }
+
+        /* Fixed 3D Library Assets */
+        .library-asset {
+            position: absolute;
+            z-index: 10;
+            filter: drop-shadow(0 20px 40px rgba(0,0,0,0.8));
+            pointer-events: none;
+            transition: transform 0.1s ease-out;
+        }
+
+        .stage {
+            height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+        }
+
+        /* Archive Display Area */
+        .archive-vault {
+            width: 1000px;
+            height: 600px;
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+            gap: 30px;
+            padding: 40px;
+            overflow-y: auto;
+            transform-style: preserve-3d;
+            scrollbar-width: thin;
+            scrollbar-color: var(--book-gold) transparent;
+        }
+
+        h2 {
+            font-family: 'Syncopate', sans-serif;
+            letter-spacing: 10px;
+            color: var(--book-gold);
+            text-shadow: 0 0 15px rgba(197, 160, 89, 0.5);
+            margin-bottom: 30px;
+            transform: translateZ(50px);
+            text-align: center;
+        }
+
+        /* 3D Book Page / Spine Design */
+        .student-book {
+            background: var(--parchment);
+            color: #2c1b0e;
+            height: 280px;
+            padding: 25px;
+            border-radius: 5px 20px 20px 5px;
+            box-shadow: -8px 0 0 #6d0000, 15px 15px 30px rgba(0,0,0,0.6);
+            position: relative;
+            transform-style: preserve-3d;
+            transition: all 0.4s cubic-bezier(0.23, 1, 0.32, 1);
+            cursor: pointer;
+            display: flex;
+            flex-direction: column;
+            border: 1px solid rgba(0,0,0,0.1);
+        }
+
+        .student-book:hover {
+            transform: translateZ(80px) rotateY(-15deg);
+            box-shadow: 25px 40px 60px rgba(0,0,0,0.9);
+            background: #ffffff;
+        }
+
+        .book-name {
+            font-size: 1.4rem;
+            font-weight: 800;
+            border-bottom: 2px solid var(--library-oak);
+            padding-bottom: 8px;
+            text-transform: uppercase;
+            line-height: 1.1;
+        }
+
+        .book-email {
+            font-size: 0.85rem;
+            font-style: italic;
+            word-break: break-all;
+            margin-top: 15px;
+            opacity: 0.8;
+            font-weight: 600;
+        }
+
+        .btn-expunge {
+            background: #8b0000;
+            color: white;
+            border: none;
+            width: 100%;
+            padding: 10px;
+            font-size: 0.75rem;
+            font-weight: 800;
+            letter-spacing: 2px;
+            border-radius: 4px;
+            margin-top: auto;
+            transition: 0.3s;
+        }
+
+        .btn-expunge:hover {
+            background: #ff0000;
+            box-shadow: 0 0 20px rgba(255,0,0,0.5);
+        }
+
+        /* Controls */
+        .controls {
+            margin-top: 40px;
+            z-index: 100;
+            text-align: center;
+        }
+
+        .btn-scroll {
+            background: var(--book-gold);
+            color: black;
+            border: none;
+            padding: 15px 50px;
+            font-weight: 800;
+            letter-spacing: 4px;
+            transition: 0.3s;
+            box-shadow: 0 0 20px rgba(197, 160, 89, 0.3);
+        }
+
+        .btn-scroll:hover {
+            transform: scale(1.1);
+            background: #fff;
+            box-shadow: 0 0 40px var(--book-gold);
+        }
+
+    </style>
+</head>
+<body>
+
+    <img src="https://pngimg.com/d/book_PNG2111.png" 
+         class="library-asset" id="asset-1" 
+         style="width: 350px; bottom: -20px; left: -50px; transform: rotate(15deg);" 
+         alt="Antique Book">
+    
+    <img src="https://pngimg.com/d/feather_PNG12984.png" 
+         class="library-asset" id="asset-2" 
+         style="width: 250px; top: 20px; right: 50px; transform: rotate(-25deg);" 
+         alt="Quill Pen">
+
+    <div class="stage">
+        <h2>STUDENT ARCHIVES</h2>
+        
+        <div class="archive-vault" id="students">
+            <div class="text-center w-100 opacity-50">Archives are closed. Open to view records.</div>
+        </div>
+
+        <div class="controls">
+            <button class="btn-scroll" onclick="loadStudents()">OPEN RECORDS</button>
+            <br>
+            <a href="#" class="mt-4 d-inline-block text-white-50 text-decoration-none" onclick="window.location='admin.html'">[ TERMINATE SESSION ]</a>
+        </div>
+    </div>
+
+    <script>
+        const vault = document.getElementById("students");
+        const a1 = document.getElementById("asset-1");
+        const a2 = document.getElementById("asset-2");
+
+        // Interactive 3D Parallax
+        document.addEventListener("mousemove", (e) => {
+            let x = (window.innerWidth / 2 - e.pageX) / 50;
+            let y = (window.innerHeight / 2 - e.pageY) / 50;
+
+            vault.style.transform = `rotateY(${x}deg) rotateX(${-y}deg)`;
+            
+            if(a1) a1.style.transform = `translate3d(${-x*4}px, ${-y*4}px, 150px) rotate(${15+x}deg)`;
+            if(a2) a2.style.transform = `translate3d(${x*5}px, ${y*5}px, 100px) rotate(${-25-x}deg)`;
+        });
+
+        /* --- API LOGIC --- */
+        function loadStudents(){
+            fetch("http://localhost:5000/users")
+            .then(res=>res.json())
+            .then(data=>{
+                let list=""
+                data.forEach((user)=>{
+                    if(user.role=="student"){
+                        list += `
+                        <div class="student-book">
+                            <div>
+                                <div class="book-name">${user.name || 'Anonymous'}</div>
+                                <div class="book-email">${user.email}</div>
+                            </div>
+                            <button class="btn-expunge" onclick="deleteUser('${user.email}')">EXPUNGE</button>
+                        </div>
+                        `
+                    }
+                });
+                vault.innerHTML = list || "<div class='w-100 text-center'>The archives are currently empty.</div>";
+            })
+            .catch(err => {
+                vault.innerHTML = "<div class='w-100 text-center text-danger'>SERVER DISCONNECTED. RECORDS UNREACHABLE.</div>";
+            });
+        }
+
+        function deleteUser(email){
+            if(!confirm("Permanently erase " + email + " from archives?")) return;
+            fetch("http://localhost:5000/delete_user/"+email,{ method:"DELETE" })
+            .then(res=>res.json())
+            .then(data=>{
+                alert(data.message);
+                loadStudents();
+            })
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Admin | Complaint Logs</title>
+
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Syncopate:wght@700&family=Plus+Jakarta+Sans:wght@300;600;800&display=swap" rel="stylesheet">
+
+<style>
+:root {
+--magma: #ff3300;
+--lava: #990000;
+--smoke: #1a1a1a;
+}
+
+body {
+margin: 0;
+height: 100vh;
+background: radial-gradient(circle at center, #3d0a00 0%, #000000 100%);
+font-family: 'Plus Jakarta Sans', sans-serif;
+color: white;
+overflow: hidden;
+perspective: 2000px;
+}
+
+.angry-icon {
+position: absolute;
+font-size: 6rem;
+filter: drop-shadow(0 0 30px var(--magma));
+z-index: 50;
+pointer-events: none;
+animation: pulse-red 2s infinite ease-in-out;
+}
+
+@keyframes pulse-red {
+0%,100%{transform:translateZ(100px) scale(1);}
+50%{transform:translateZ(150px) scale(1.1);}
+}
+
+.stage {
+height: 100vh;
+display: flex;
+align-items: center;
+justify-content: center;
+}
+
+.log-card {
+background: linear-gradient(145deg, rgba(30,0,0,0.9), rgba(10,0,0,0.95));
+border: 2px solid var(--magma);
+border-radius: 40px;
+width: 850px;
+height: 600px;
+padding: 50px;
+display: flex;
+flex-direction: column;
+}
+
+h2 {
+font-family: 'Syncopate', sans-serif;
+color: var(--magma);
+text-align: center;
+margin-bottom: 20px;
+}
+
+#complaints {
+list-style: none;
+padding: 0;
+overflow-y: auto;
+flex-grow: 1;
+}
+
+#complaints li {
+background: rgba(255,51,0,0.05);
+border-left: 4px solid var(--magma);
+margin-bottom: 10px;
+padding: 15px;
+border-radius: 10px;
+}
+
+.btn-fire {
+border: 2px solid var(--magma);
+color: var(--magma);
+padding: 10px 25px;
+border-radius: 10px;
+font-weight: bold;
+margin-bottom: 15px;
+}
+
+.btn-fire:hover {
+background: var(--magma);
+color: black;
+}
+
+</style>
+</head>
+
+<body>
+
+<div class="stage">
+<div class="log-card">
+
+<h2>STUDENT COMPLAINTS</h2>
+
+<div class="text-center">
+<button id="btn" class="btn-fire" onclick="loadComplaints()">FETCH ANGRY LOGS</button>
+</div>
+
+<ul id="complaints">
+<li>Click button or wait...</li>
+</ul>
+
+<div class="text-center">
+<a href="#" onclick="window.location='admin.html'">BACK</a>
+</div>
+
+</div>
+</div>
+
+<script>
+
+function loadComplaints(){
+
+let btn = document.getElementById("btn")
+let box = document.getElementById("complaints")
+
+// 🔥 show loading
+btn.disabled = true
+btn.innerText = "LOADING..."
+box.innerHTML = "<li>⏳ Loading complaints...</li>"
+
+fetch("http://localhost:5000/complaints",{
+method:"GET",
+cache:"no-store"
+})
+.then(res => {
+if(!res.ok){
+throw new Error("Server error")
+}
+return res.json()
+})
+.then(data => {
+
+let list = ""
+
+if(data.length === 0){
+list = "<li>No complaints found 😊</li>"
+}else{
+data.forEach(c=>{
+list += `
+<li>
+<strong>${c.user}</strong><br>
+${c.complaint}
+</li>`
+})
+}
+
+box.innerHTML = list
+
+btn.disabled = false
+btn.innerText = "FETCH ANGRY LOGS"
+
+})
+.catch(err => {
+
+// 🔥 auto retry (key fix)
+setTimeout(loadComplaints, 500)
+
+})
+
+}
+
+// 🔥 AUTO LOAD (NO CLICK NEEDED)
+window.onload = loadComplaints
+
+</script>
+
+</body>
+</html>

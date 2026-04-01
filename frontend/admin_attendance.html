@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin | Attendance Radar</title>
+    
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Syncopate:wght@700&family=Share+Tech+Mono&family=Plus+Jakarta+Sans:wght@300;600;800&display=swap" rel="stylesheet">
+
+    <style>
+        :root {
+            --radar-cyan: #00f2ff;
+            --radar-glow: rgba(0, 242, 255, 0.4);
+            --bg-dark: #000b0d;
+        }
+
+        body {
+            margin: 0;
+            height: 100vh;
+            background: radial-gradient(circle at center, #001a1d 0%, var(--bg-dark) 100%);
+            font-family: 'Share Tech Mono', monospace;
+            color: var(--radar-cyan);
+            overflow: hidden;
+            perspective: 2000px;
+        }
+
+        /* 3D Grid Floor Effect */
+        .grid-floor {
+            position: absolute;
+            width: 200%;
+            height: 200%;
+            top: -50%;
+            left: -50%;
+            background-image: 
+                linear-gradient(rgba(0, 242, 255, 0.1) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(0, 242, 255, 0.1) 1px, transparent 1px);
+            background-size: 50px 50px;
+            transform: rotateX(60deg);
+            z-index: 1;
+            animation: moveGrid 20s linear infinite;
+        }
+
+        @keyframes moveGrid {
+            0% { transform: rotateX(60deg) translateY(0); }
+            100% { transform: rotateX(60deg) translateY(50px); }
+        }
+
+        /* Floating Holographic Assets */
+        .hologram-asset {
+            position: absolute;
+            font-size: 5rem;
+            filter: drop-shadow(0 0 20px var(--radar-cyan));
+            z-index: 50;
+            pointer-events: none;
+            opacity: 0.6;
+            animation: floatHolo 4s infinite ease-in-out;
+        }
+
+        @keyframes floatHolo {
+            0%, 100% { transform: translateZ(200px) translateY(0) scale(1); }
+            50% { transform: translateZ(250px) translateY(-20px) scale(1.1); }
+        }
+
+        .stage {
+            height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 10;
+            position: relative;
+        }
+
+        /* Main Radar Card */
+        .radar-card {
+            background: rgba(0, 20, 25, 0.8);
+            backdrop-filter: blur(10px);
+            border: 1px solid var(--radar-cyan);
+            border-radius: 30px;
+            width: 900px;
+            height: 650px;
+            padding: 40px;
+            position: relative;
+            transform-style: preserve-3d;
+            box-shadow: 0 0 50px var(--radar-glow), inset 0 0 30px var(--radar-glow);
+            transition: transform 0.1s ease-out;
+        }
+
+        /* Scanning Laser Line */
+        .radar-card::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 2px;
+            background: var(--radar-cyan);
+            box-shadow: 0 0 15px var(--radar-cyan);
+            animation: scan 4s linear infinite;
+            z-index: 100;
+        }
+
+        @keyframes scan {
+            0% { top: 0; opacity: 0; }
+            10% { opacity: 1; }
+            90% { opacity: 1; }
+            100% { top: 100%; opacity: 0; }
+        }
+
+        h2 {
+            font-family: 'Syncopate', sans-serif;
+            font-weight: 700;
+            letter-spacing: 10px;
+            text-align: center;
+            margin-bottom: 30px;
+            text-shadow: 0 0 10px var(--radar-cyan);
+        }
+
+        /* Data Table Style */
+        .attendance-wrap {
+            height: 380px;
+            overflow-y: auto;
+            border: 1px solid rgba(0, 242, 255, 0.2);
+            padding: 10px;
+            scrollbar-width: thin;
+            scrollbar-color: var(--radar-cyan) transparent;
+        }
+
+        .attendance-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 15px;
+            border-bottom: 1px solid rgba(0, 242, 255, 0.1);
+            transition: 0.3s;
+            font-size: 0.9rem;
+        }
+
+        .attendance-item:hover {
+            background: rgba(0, 242, 255, 0.1);
+            color: #fff;
+            transform: translateZ(20px);
+        }
+
+        .tag {
+            padding: 2px 8px;
+            border: 1px solid var(--radar-cyan);
+            font-size: 0.7rem;
+            border-radius: 4px;
+            text-transform: uppercase;
+        }
+
+        /* Radar Buttons */
+        .btn-radar {
+            background: var(--radar-cyan);
+            color: black;
+            border: none;
+            padding: 10px 30px;
+            font-weight: bold;
+            letter-spacing: 2px;
+            clip-path: polygon(10% 0, 100% 0, 90% 100%, 0% 100%);
+            transition: 0.3s;
+        }
+
+        .btn-radar:hover {
+            box-shadow: 0 0 20px var(--radar-cyan);
+            transform: scale(1.1);
+        }
+
+    </style>
+</head>
+<body>
+
+    <div class="grid-floor"></div>
+
+    <div class="hologram-asset" id="holo-1" style="top: 10%; right: 5%;">📡</div>
+    <div class="hologram-asset" id="holo-2" style="bottom: 10%; left: 5%;">👤</div>
+
+    <div class="stage">
+        <div class="radar-card" id="card">
+            
+            <h2>ATTENDANCE_TRACKER</h2>
+
+            <div class="text-center mb-4">
+                <button class="btn-radar" onclick="loadAttendance()">INITIALIZE SCAN</button>
+            </div>
+
+            <div class="attendance-wrap" id="attendance-box">
+                <div class="text-center opacity-50 mt-5">WAITING FOR COMMAND...</div>
+            </div>
+
+            <div class="text-center mt-5">
+                <button class="btn btn-link text-info text-decoration-none" style="font-size: 0.8rem; letter-spacing: 3px;" onclick="window.location='admin.html'">[ ESCAPE_TO_DASHBOARD ]</button>
+            </div>
+
+        </div>
+    </div>
+
+    <script>
+        const card = document.getElementById("card");
+        const holos = [document.getElementById('holo-1'), document.getElementById('holo-2')];
+
+        document.addEventListener("mousemove", (e) => {
+            let x = (window.innerWidth / 2 - e.pageX) / 40;
+            let y = (window.innerHeight / 2 - e.pageY) / 40;
+
+            card.style.transform = `rotateY(${x}deg) rotateX(${-y}deg)`;
+
+            holos.forEach((holo, i) => {
+                let speed = (i + 1) * 3;
+                holo.style.transform = `translate3d(${-x * speed}px, ${-y * speed}px, 200px)`;
+            });
+        });
+
+        /* --- ORIGINAL API LOGIC --- */
+        function loadAttendance(){
+            const box = document.getElementById("attendance-box");
+            box.innerHTML = "<div class='text-center mt-5 animate-pulse'>SCANNING...</div>";
+
+            fetch("http://localhost:5000/attendance")
+            .then(res=>res.json())
+            .then(data=>{
+                let list=""
+                if(data.length === 0) {
+                    list = "<div class='text-center mt-5'>NO DATA DETECTED IN SECTOR.</div>";
+                } else {
+                    data.forEach(a=>{
+                        list += `
+                        <div class="attendance-item">
+                            <span>>> ${a.user.toUpperCase()}</span>
+                            <span>${a.date}</span>
+                            <span class="tag">${a.meal}</span>
+                        </div>`
+                    })
+                }
+                box.innerHTML = list;
+            })
+            .catch(err => {
+                box.innerHTML = "<div class='text-center mt-5 text-danger'>COMMUNICATION ERROR.</div>";
+            });
+        }
+    </script>
+</body>
+</html>
